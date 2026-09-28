@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "joinchat/button",
+  "version": "0.3.0",
+  "title": "Joinchat Button",
+  "category": "widgets",
+  "icon": "smiley",
+  "description": "WhatsApp contact button with QR code",
+  "keywords": [
+    "WhatsApp",
+    "QR",
+    "contact",
+    "phone"
+  ],
+  "textdomain": "creame-whatsapp-me",
+  "editorStyle": "file:../index.css",
+  "style": "file:../style-index.css",
+  "example": {},
+  "attributes": {
+    "phone": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "qr_code": {
+      "type": "string",
+      "enum": [
+        "both",
+        "only",
+        "no"
+      ],
+      "default": "both"
+    },
+    "layout": {
+      "type": "object",
+      "default": {
+        "type": "flex",
+        "justifyContent": "center",
+        "orientation": "vertical"
+      }
+    },
+    "style": {
+      "type": "object"
+    },
+    "qrBorderStyles": {
+      "type": "object",
+      "default": {
+        "width": "6px",
+        "radius": "30px",
+        "color": "#25d366",
+        "colorSlug": ""
+      }
+    }
+  },
+  "supports": {
+    "anchor": false,
+    "align": true,
+    "alignWide": false,
+    "lock": false,
+    "layout": {
+      "allowSwitching": false,
+      "allowInheriting": false,
+      "allowWrap": false,
+      "default": {
+        "type": "flex"
+      }
+    },
+    "reusable": true,
+    "spacing": {
+      "margin": true,
+      "padding": true,
+      "blockGap": {
+        "__experimentalDefault": "10px"
+      }
+    }
+  }
+}
