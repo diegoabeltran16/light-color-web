@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -24,32 +23,31 @@ jobs:
 
     steps:
       # ------------------------------------------------------------
-      # 1. Checkout
+      # 1. Checkout canonical source
       # ------------------------------------------------------------
-      # main remains the canonical static source.
-      # No GitHub Pages-specific paths are written back to the repo.
       - name: Checkout canonical static site
         uses: actions/checkout@v6
 
       # ------------------------------------------------------------
       # 2. Configure GitHub Pages
       # ------------------------------------------------------------
-      # Provides the Pages base path dynamically.
+      # Provides the deployment base path dynamically.
       #
       # Current project deployment:
       #   /light-color-web
       #
-      # Future custom-domain deployment may use:
+      # A future domain-root deployment may use:
       #   /
       - name: Configure GitHub Pages
         id: pages
         uses: actions/configure-pages@v6
 
       # ------------------------------------------------------------
-      # 3. Create ephemeral deployment artifact
+      # 3. Build ephemeral deployment artifact
       # ------------------------------------------------------------
-      # Copies the canonical site into _site/ and adapts only that
-      # temporary copy for the GitHub Project Pages base path.
+      # The canonical repository remains unchanged.
+      # GitHub Pages-specific transformations are applied only
+      # to the temporary _site/ directory.
       - name: Create deployment artifact
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
@@ -89,9 +87,7 @@ jobs:
           }
 
           replacements = {
-              # ----------------------------------------------------
-              # HTML / JSON / JavaScript quoted URLs
-              # ----------------------------------------------------
+              # Quoted asset URLs
               '"/wp-content/':
                   f'"{base}/wp-content/',
               "'/wp-content/":
@@ -101,20 +97,13 @@ jobs:
               "'/wp-includes/":
                   f"'{base}/wp-includes/",
 
-              # ----------------------------------------------------
-              # Responsive image candidates inside srcset
-              #
-              # Example:
-              #   ..., /wp-content/image-300x300.png 300w
-              # ----------------------------------------------------
+              # Responsive srcset candidates after commas
               ', /wp-content/':
                   f', {base}/wp-content/',
               ', /wp-includes/':
                   f', {base}/wp-includes/',
 
-              # ----------------------------------------------------
               # CSS url(...) references
-              # ----------------------------------------------------
               'url(/wp-content/':
                   f'url({base}/wp-content/',
               'url("/wp-content/':
@@ -163,14 +152,14 @@ jobs:
       # ------------------------------------------------------------
       # 4. Verify deployment artifact
       # ------------------------------------------------------------
-      # Fails before deployment if:
+      # The build fails before upload if:
       #
-      # - required static structure is missing; or
-      # - runtime URLs still point to host-root WordPress assets
-      #   while Pages is hosted below a project base path.
+      # - the required static structure is missing; or
+      # - browser-runtime asset URLs still point to /wp-content/
+      #   or /wp-includes/ at the host root.
       #
-      # Comments and sourceURL/debug references are intentionally
-      # ignored because they do not represent browser asset requests.
+      # Correctly transformed URLs under BASE_PATH are masked before
+      # inspection so they cannot produce false positives.
       - name: Verify deployment artifact
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
@@ -209,44 +198,44 @@ jobs:
               ".svg",
           }
 
-          # Detect only URL-shaped runtime references capable of
-          # generating browser requests outside the Pages base path.
+          # --------------------------------------------------------
+          # Runtime path audit
+          # --------------------------------------------------------
           #
-          # Examples that MUST fail:
+          # VALID:
           #
-          #   src="/wp-content/..."
-          #   href="/wp-content/..."
-          #   poster="/wp-content/..."
+          #   /light-color-web/wp-content/...
+          #   /light-color-web/wp-includes/...
           #
-          #   srcset="/wp-content/a.png 1024w,
-          #           /wp-content/b.png 300w"
+          # INVALID:
           #
-          #   url(/wp-content/...)
+          #   /wp-content/...
+          #   /wp-includes/...
           #
-          # Examples intentionally ignored:
+          # Valid BASE_PATH-prefixed references are masked before
+          # inspection. This prevents a valid path such as:
           #
-          #   //# sourceURL=/wp-includes/...
+          #   /light-color-web/wp-content/
           #
-          #   comments mentioning:
-          #   /wp-includes/post-template.php
+          # from being mistaken for:
+          #
+          #   /wp-content/
+          #
+          # Only browser-runtime URL contexts are inspected.
+          # Comments and sourceURL/debug references are intentionally
+          # ignored.
 
           runtime_patterns = [
-              # src, href and poster attributes
+              # HTML runtime attributes
               re.compile(
                   r'''(?:src|href|poster)\s*=\s*["']/'''
                   r'''(?:wp-content|wp-includes)/''',
                   re.IGNORECASE,
               ),
 
-              # First or subsequent root-relative URL in srcset
+              # Responsive image srcset
               re.compile(
                   r'''srcset\s*=\s*["'][^"']*/'''
-                  r'''(?:wp-content|wp-includes)/''',
-                  re.IGNORECASE,
-              ),
-
-              re.compile(
-                  r'''srcset\s*=\s*["'][^"']*,\s*/'''
                   r'''(?:wp-content|wp-includes)/''',
                   re.IGNORECASE,
               ),
@@ -258,6 +247,11 @@ jobs:
                   re.IGNORECASE,
               ),
           ]
+
+          valid_prefixes = (
+              f"{base}/wp-content/",
+              f"{base}/wp-includes/",
+          )
 
           failures = []
 
@@ -277,8 +271,17 @@ jobs:
                   text.splitlines(),
                   start=1,
               ):
+                  audited_line = line
+
+                  # Mask correctly scoped GitHub Pages asset paths.
+                  for prefix in valid_prefixes:
+                      audited_line = audited_line.replace(
+                          prefix,
+                          "/__PAGES_ASSET__/",
+                      )
+
                   if any(
-                      pattern.search(line)
+                      pattern.search(audited_line)
                       for pattern in runtime_patterns
                   ):
                       failures.append(
@@ -310,13 +313,13 @@ jobs:
 
           print("Runtime path audit OK.")
           print(
-              "No incompatible root-relative "
-              "WordPress asset URLs remain."
+              "All runtime WordPress asset URLs are "
+              "compatible with the GitHub Pages base path."
           )
           PY
 
       # ------------------------------------------------------------
-      # 5. Upload verified artifact
+      # 5. Upload verified Pages artifact
       # ------------------------------------------------------------
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v5
@@ -334,10 +337,10 @@ jobs:
 
     steps:
       # ------------------------------------------------------------
-      # 6. Deploy
+      # 6. Deploy verified artifact
       # ------------------------------------------------------------
-      # This job only runs after the build and runtime path audit
-      # have completed successfully.
+      # This job cannot run unless the build and runtime-path
+      # verification complete successfully.
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
