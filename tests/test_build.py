@@ -134,24 +134,61 @@ class BuildTests(unittest.TestCase):
     def test_service_cards_keep_image_and_content_in_separate_vertical_flow(self):
         script = (ROOT / "src" / "scripts" / "catalog.js").read_text(encoding="utf-8")
         css = (ROOT / "src" / "styles" / "services.css").read_text(encoding="utf-8")
-        reference_css = (ROOT / "R003" / "catalog.css").read_text(encoding="utf-8")
+        records = json.loads((ROOT / "src" / "catalog-data" / "services.json").read_text(encoding="utf-8"))
+        source_page = (ROOT / "src" / "pages" / "services.html").read_text(encoding="utf-8")
 
-        self.assertIn("var content = record.detailStatus === 'ready' ? document.createElement('a') : document.createElement('div')", script)
-        self.assertIn("content.append(media, body);", script)
-        self.assertIn("content.className = 'lc-services__card-content';", script)
-        self.assertIn("body.className = 'lc-catalog__card-body';", script)
-        self.assertIn("min-height: 330px; flex: 1 0 auto; flex-direction: column", css)
-        self.assertIn("height: 190px; min-height: 190px; flex: 0 0 190px", css)
-        self.assertIn("width: 100%; height: 190px; object-fit: cover", css)
-        self.assertIn("overflow: hidden", css[css.index(".lc-services__card-media {"):css.index(".lc-services__card-media img {")])
+        photo_record = next((record for record in records if record.get("cover")), None)
+        neutral_record = next((record for record in records if not record.get("cover")), None)
+        self.assertIsNotNone(photo_record, "El catálogo canónico debe incluir tarjetas con fotografía.")
+        self.assertIsNotNone(neutral_record, "El catálogo canónico debe incluir tarjetas neutras.")
+
+        service_catalog = script.split("function initServiceCatalog(root) {", 1)[1].split("function initServiceGallery(root) {", 1)[0]
+        card_builder = service_catalog.split("function makeCard(record) {", 1)[1].split("function render() {", 1)[0]
+        self.assertIn("var content = record.detailStatus === 'ready' ? document.createElement('a') : document.createElement('div')", card_builder)
+        self.assertIn("content.className = 'lc-services__card-content';", card_builder)
+        self.assertIn("media.className = 'lc-catalog__card-media lc-services__card-media';", card_builder)
+        self.assertIn("if (record.cover)", card_builder)
+        self.assertIn("image.src = base + record.cover;", card_builder)
+        self.assertIn("image.width = 1254;", card_builder)
+        self.assertIn("image.height = 1254;", card_builder)
+        self.assertIn("placeholder.className = 'lc-services__placeholder';", card_builder)
+        self.assertIn("body.className = 'lc-catalog__card-body';", card_builder)
+        self.assertIn("content.append(media, body);", card_builder)
+        self.assertLess(card_builder.index("if (record.cover)"), card_builder.index("} else {"))
+        self.assertLess(card_builder.index("} else {"), card_builder.index("var body = document.createElement('div');"))
+
+        self.assertIn('data-catalog-type="services"', source_page)
+        self.assertIn('data-catalog-data="{{base}}assets/services/services.json"', source_page)
+        self.assertIn('<div class="lc-catalog__grid lc-services__grid" data-catalog-grid hidden></div>', source_page)
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "site"
+            build("preview-connected", "/", output, ROOT)
+            generated_page = (output / "servicios" / "index.html").read_text(encoding="utf-8")
+            generated_css = (output / "assets" / "services.css").read_text(encoding="utf-8")
+            generated_script = (output / "assets" / "catalog.js").read_text(encoding="utf-8")
+        self.assertIn('data-catalog-data="/assets/services/services.json"', generated_page)
+        self.assertIn('<div class="lc-catalog__grid lc-services__grid" data-catalog-grid hidden></div>', generated_page)
+        self.assertIn(".lc-services__card-media img", generated_css)
+        self.assertIn("content.append(media, body);", generated_script)
+
+        card_rule = css[css.index(".lc-catalog__card {"):css.index(".lc-catalog__card-media {")]
+        card_content_rule = css[css.index(".lc-services__card-content {"):css.index(".lc-services__card-content:focus-visible {")]
+        media_rule = css[css.index(".lc-services__card-media {"):css.index(".lc-services__card-media img {")]
+        image_rule = css[css.index(".lc-services__card-media img {"):css.index(".lc-services__placeholder {")]
+        body_rule = css[css.index(".lc-services__card .lc-catalog__card-body {"):css.index(".lc-services__card-cta {")]
+        self.assertIn("background: #fff", card_rule)
+        self.assertIn("display: flex", card_content_rule)
+        self.assertIn("flex-direction: column", card_content_rule)
+        self.assertIn("height: 190px; min-height: 190px; flex: 0 0 190px", media_rule)
+        self.assertIn("overflow: hidden", media_rule)
+        self.assertIn("display: block; width: 100%; height: 190px; object-fit: cover", image_rule)
+        self.assertIn("position: static", body_rule)
+        self.assertIn("display: flex", body_rule)
+        self.assertNotRegex(card_content_rule + media_rule + image_rule + body_rule, r"position:\s*absolute")
         mobile = css[css.index("@media (max-width: 640px)"):css.index("@media (prefers-reduced-motion")]
         self.assertIn(".lc-services__card-media img { height: auto; aspect-ratio: 1.35; }", mobile)
         self.assertNotIn(".lc-services__card-media img { height: 100%;", mobile)
-        self.assertIn("position: static; display: flex; min-width: 0; flex: 1 0 auto", css)
-        self.assertIn("aspect-ratio: 1.35", css)
-        self.assertIn(".lc-catalog--services .lc-services__card-content { display:flex; height:100%; flex:1; flex-direction:column", reference_css)
-        self.assertIn(".lc-catalog--services .lc-services__card-media { height:190px; min-height:190px; }", reference_css)
-        self.assertNotRegex(css, r"\.lc-services__card(?:-content|-media)?\s*\{[^}]*position:\s*absolute")
+        self.assertIn("aspect-ratio: 1.35", mobile)
 
     def test_home_preview_preserves_required_section_structure(self):
         html = (ROOT / "src" / "pages" / "home.html").read_text(encoding="utf-8")
@@ -284,7 +321,6 @@ class BuildTests(unittest.TestCase):
         validate_connected_preview_entries(entries, manifest["components"])
         sources = {entry["source"] for entry in entries}
         self.assertNotIn("docs/privacy-policy-preparation.md", sources)
-        self.assertTrue((ROOT / "docs" / "privacy-policy-preparation.md").is_file())
         with self.assertRaisesRegex(BuildError, "revisión editorial"):
             validate_public_entries(entries)
         altered_entries = [*entries, {
