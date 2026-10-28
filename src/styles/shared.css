@@ -1,0 +1,102 @@
+/* Global components own their typography and geometry; page styles must not supply them. */
+.lc-site-header {
+  position: relative;
+  z-index: 100;
+  box-sizing: border-box;
+  color: #234857;
+  font-family: "Sagona", Georgia, serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  border-bottom: 1px solid #edf1f2;
+  background: #fff;
+  box-shadow: none;
+}
+.lc-site-header *,
+.lc-site-header *::before,
+.lc-site-header *::after { box-sizing: border-box; }
+.lc-site-header__inner { display: flex; align-items: center; gap: 28px; width: min(1280px, calc(100% - 40px)); min-height: 85px; margin: 0 auto; }
+.lc-site-header__brand { display: flex; align-items: center; gap: 12px; margin-right: auto; color: #234857; font-family: "Sagona", Georgia, serif; font-size: 21px; font-style: italic; font-weight: 700; line-height: normal; text-decoration: none; white-space: nowrap; }
+.lc-site-header__brand img { display: block; width: 50px; height: 50px; object-fit: contain; }
+.lc-site-header__nav { display: flex; align-items: center; gap: 4px; }
+.lc-site-header__link { display: inline-block; padding: 12px 15px; border-radius: 100px; color: #234857; font-family: "Sagona", Georgia, serif; font-size: 14px; font-style: italic; font-weight: 400; line-height: normal; text-decoration: none; }
+.lc-site-header__link:hover,
+.lc-site-header__link:focus-visible { color: #707070; }
+.lc-site-header__link.is-active { background: #e4f3fa; }
+.lc-site-header .lc-site-header__link:focus-visible,
+.lc-site-header .lc-site-header__toggle:focus-visible,
+.lc-site-header .lc-site-header__whatsapp:focus-visible { outline: 3px solid #ff7693; outline-offset: 3px; }
+.lc-site-header__whatsapp { display: inline-flex; align-items: center; gap: 6px; padding: 13px 28px; border-radius: 100px; background: #336a7f; color: #fff; font-family: "Sagona", Georgia, serif; font-size: 16px; font-style: italic; font-weight: 900; line-height: normal; text-decoration: none; white-space: nowrap; }
+.lc-site-header__whatsapp svg { display: block; width: 14px; height: 14px; fill: currentColor; }
+.lc-site-header__toggle { display: none; width: 45px; height: 31px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 3px; background: #fff; }
+.lc-site-header__toggle > span { display: block; height: 1px; margin: 4px 0; background: #666; }
+.lc-site-header--detail { width: 100%; margin: 0; padding: 0; border-radius: 0; background: #fff; box-shadow: none; }
+
+.lc-site-footer {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  color: #234857;
+  background: #f4fafc;
+  font-family: "Sagona", Georgia, serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+.lc-site-footer *,
+.lc-site-footer *::before,
+.lc-site-footer *::after { box-sizing: border-box; }
+.lc-site-footer__inner { display: grid; grid-template-columns: 1.15fr 1fr .9fr 1.1fr; gap: 28px; width: min(1280px, calc(100% - 48px)); margin: 0 auto; padding: 42px 0 52px; border-top: 1px solid #dce8ec; }
+.lc-site-footer__brand,
+.lc-site-footer__social,
+.lc-site-footer__hours,
+.lc-site-footer__contact { min-width: 0; }
+.lc-site-footer .lc-site-footer__main h2 { margin: 0 0 14px; color: #234857; font-family: "Sagona", Georgia, serif; font-size: 1.25rem; font-style: normal; font-weight: 400; line-height: 1.16; }
+.lc-site-footer .lc-site-footer__main p { margin: 0 0 16px; color: #234857; font-family: "Sagona", Georgia, serif; font-size: 16px; font-style: normal; font-weight: 400; line-height: 1.55; }
+.lc-site-footer__brand > a { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #234857; font-family: "Sagona", Georgia, serif; font-size: 20px; font-style: italic; font-weight: 700; line-height: normal; text-decoration: none; }
+.lc-site-footer__brand > a img { display: block; width: 50px; height: 50px; object-fit: contain; }
+.lc-site-footer__art { display: block; width: min(100%, 310px); height: auto; margin: 12px 0 0; object-fit: contain; }
+.lc-site-footer__social ul { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.lc-site-footer__social li { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: #e4f3fa; color: #336a7f; }
+.lc-site-footer__social li svg { display: block; width: 19px; height: 19px; fill: currentColor; }
+.lc-site-footer__main .lc-site-footer__contact a { color: #234857; }
+.lc-site-footer__contact address { margin: 0 0 12px; font-style: normal; }
+.lc-site-footer__map { display: grid; width: 100%; height: 250px; margin-top: 16px; overflow: hidden; place-items: center; border: 1px solid #d3e2e8; border-radius: 12px; background: #eaf3f6; }
+.lc-site-footer__map-button { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 0; padding: 18px; background: transparent; color: #336a7f; font: inherit; text-align: center; cursor: pointer; }
+.lc-site-footer__map-button:hover { background: #e4f3fa; }
+.lc-site-footer a:focus-visible,
+.lc-site-footer__map-button:focus-visible,
+.lc-site-footer__directions:focus-visible { outline: 3px solid #f5627f; outline-offset: 3px; }
+.lc-site-footer__map-icon { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.lc-site-footer__map-label { font-weight: 700; }
+.lc-site-footer .lc-site-footer__main p.lc-site-footer__map-hint { max-width: 30ch; margin: 0; color: #47616b; font-family: Poppins, Arial, sans-serif; font-size: .82rem; line-height: 1.4; }
+.lc-site-footer__contact > p { margin-bottom: 12px; }
+.lc-site-footer__directions { display: inline-block; margin-top: 12px; color: #234857; }
+.lc-site-footer__map iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: 11px; }
+.lc-site-footer__bottom { padding: 25px 20px; border-top: 1px solid #e0e9ed; background: #fff; text-align: center; }
+.lc-site-footer .lc-site-footer__copyright { margin: 0; color: #234857; font-family: Poppins, Arial, sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5; }
+
+.lc-whatsapp-float { position: fixed; left: calc(24px + env(safe-area-inset-left, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 9999; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: #25d366; box-shadow: 0 6px 18px #0004; color: #fff; }
+.lc-whatsapp-float:hover { background: #128c7e; color: #fff; }
+.lc-whatsapp-float:focus-visible { outline: 3px solid #234857; outline-offset: 3px; }
+.lc-whatsapp-float svg { display: block; width: 34px; height: 34px; fill: currentColor; }
+
+@media (max-width: 1024px) {
+  .lc-site-header__inner { min-height: 85px; }
+  .lc-site-header__toggle { display: block; order: 3; }
+  .lc-site-header__whatsapp { order: 2; }
+  .lc-site-header__nav { position: absolute; top: 100%; right: 20px; left: 20px; display: none; flex-direction: column; align-items: stretch; padding: 12px; background: #fff; box-shadow: 0 8px 16px #0003; }
+  .lc-site-header.is-menu-open .lc-site-header__nav { display: flex; }
+  .lc-site-footer__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .lc-site-header__inner { width: calc(100% - 40px); }
+  .lc-site-header__whatsapp { display: none; }
+  .lc-site-header__brand { font-size: 17px; }
+  .lc-site-footer__inner { grid-template-columns: 1fr; width: calc(100% - 36px); gap: 26px; padding: 34px 0 42px; }
+  .lc-whatsapp-float { left: calc(20px + env(safe-area-inset-left, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 52px; height: 52px; }
+  .lc-whatsapp-float svg { width: 31px; height: 31px; }
+  .lc-site-footer__art { width: min(70%, 280px); margin-left: 0; }
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{DETAIL_META_DESCRIPTION}}">
+  <title>{{DETAIL_TITLE}} – Servicios | Light Color</title>
+  <!-- lc:include favicon -->
+  <link rel="stylesheet" href="{{base}}assets/shared.css">
+  <link rel="stylesheet" href="{{base}}assets/services.css">
+</head>
+<body class="lc-services-page lc-service-detail-page">
+  <a class="lc-services-skip-link" href="#content">Ir al contenido</a>
+  <!-- lc:include header -->
+  <main id="content" class="lc-service-detail" data-service-detail data-service-id="{{DETAIL_ID}}" data-base-path="{{base}}">
+    <a class="lc-service-detail__back" href="{{base}}servicios/" aria-label="Regresar al catálogo de Servicios">← Volver a Servicios</a>
+    <article>
+      <section class="lc-service-detail__hero" aria-labelledby="service-title">
+        <div class="lc-service-detail__visual">
+          <img class="lc-service-detail__hero-image" data-gallery-main src="{{DETAIL_COVER}}" width="1254" height="1254" alt="{{DETAIL_IMAGE_ALT}}" fetchpriority="high" decoding="async">
+          <div class="lc-service-detail__gallery" role="group" aria-label="Seleccionar imagen del servicio">{{DETAIL_THUMBNAILS}}</div>
+          <p class="lc-service-detail__gallery-note">Ilustraciones de referencia; no son fotografías de trabajos realizados.</p>
+        </div>
+        <div class="lc-service-detail__copy">
+          <p class="lc-service-detail__category">{{DETAIL_CATEGORY}}</p>
+          <h1 id="service-title">{{DETAIL_TITLE}}</h1>
+          <p class="lc-service-detail__variants">{{DETAIL_VARIANTS}}</p>
+          <div class="lc-service-detail__description">{{DETAIL_DESCRIPTION}}{{DETAIL_EDITORIAL_NOTE}}</div>
+          <a class="lc-service-detail__whatsapp" href="{{DETAIL_WHATSAPP_URL}}" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a>
+        </div>
+      </section>
+    </article>
+  </main>
+  <!-- lc:include footer -->
+  <!-- lc:include whatsapp -->
+  <script src="{{base}}assets/shared.js" defer></script>
+  <script src="{{base}}assets/catalog.js" defer></script>
+</body>
+</html>

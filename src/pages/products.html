@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Catálogo de productos de Light Color.">
+  <title>Productos | Light Color</title>
+  <!-- lc:include favicon -->
+  <link rel="stylesheet" href="{{base}}assets/shared.css">
+  <link rel="stylesheet" href="{{base}}assets/products.css">
+</head>
+<body class="lc-products-page">
+  <a class="lc-products-skip-link" href="#content">Ir al contenido</a>
+  <!-- lc:include header -->
+  <main id="content" class="lc-catalog lc-catalog--products" data-lc-catalog data-catalog-type="products" data-base-path="{{base}}" data-catalog-data="{{base}}assets/products/products.json">
+    <section class="lc-catalog__banner lc-products__banner" aria-labelledby="lc-products-title">
+      <div class="lc-catalog__banner-inner">
+        <h1 id="lc-products-title">Productos</h1>
+        <p>Estamos preparando el catálogo de productos de Light Color.</p>
+      </div>
+    </section>
+    <div class="lc-products__development" role="note"><strong>Catálogo en preparación</strong><span>Los productos se mostrarán cuando su información esté verificada y aprobada.</span></div>
+    <div class="lc-catalog__layout lc-products__layout">
+      <aside class="lc-catalog__filters lc-products__filters" aria-labelledby="lc-products-filters">
+        <h2 id="lc-products-filters">Filtros</h2>
+        <form data-catalog-form>
+          <div class="lc-catalog__field">
+            <label for="lc-products-search">Buscar producto</label>
+            <input id="lc-products-search" name="q" type="search" autocomplete="off" placeholder="Buscar productos..." disabled>
+          </div>
+          <fieldset class="lc-products__categories" data-product-categories disabled>
+            <legend>Grupos</legend>
+            <label class="lc-products__filter-option"><input type="radio" name="category" value="all" checked><span>Todos</span><span data-category-count="all">—</span></label>
+          </fieldset>
+          <button class="lc-catalog__reset" type="reset" disabled>Restablecer filtros</button>
+        </form>
+      </aside>
+      <section class="lc-catalog__results lc-products__results" aria-label="Resultados de productos">
+        <div class="lc-catalog__results-head">
+          <p><span data-catalog-count aria-live="polite">Preparando catálogo…</span></p>
+          <div class="lc-catalog__sort"><label for="lc-products-order">Ordenar por</label><select id="lc-products-order" name="order" disabled><option value="title-asc">Nombre: A–Z</option><option value="title-desc">Nombre: Z–A</option></select></div>
+        </div>
+        <p class="lc-catalog__status" data-catalog-status role="status">Cargando catálogo…</p>
+        <div class="lc-catalog__grid lc-products__grid" data-catalog-grid hidden></div>
+        <div class="lc-catalog__empty" data-catalog-empty hidden><h2>Aún no hay productos publicados</h2><p>Estamos verificando la información antes de presentar productos en este catálogo.</p></div>
+      </section>
+    </div>
+  </main>
+  <!-- lc:include footer -->
+  <!-- lc:include whatsapp -->
+  <script src="{{base}}assets/shared.js" defer></script>
+  <script src="{{base}}assets/catalog.js" defer></script>
+</body>
+</html>

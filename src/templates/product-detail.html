@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{PRODUCT_META_DESCRIPTION}}">
+  <title>{{PRODUCT_TITLE}} – Productos | Light Color</title>
+  <!-- lc:include favicon -->
+  <link rel="stylesheet" href="{{base}}assets/shared.css">
+  <link rel="stylesheet" href="{{base}}assets/products.css">
+</head>
+<body class="lc-products-page">
+  <a class="lc-products-skip-link" href="#content">Ir al contenido</a>
+  <!-- lc:include header -->
+  <main id="content" class="lc-product-detail" data-product-detail data-product-id="{{PRODUCT_ID}}" data-base-path="{{base}}">
+    <a class="lc-product-detail__back" href="{{base}}productos/">← Volver a Productos</a>
+    <article>
+      <p class="lc-product-demo-label">Contenido de demostración local; no es una oferta comercial.</p>
+      <section class="lc-product-detail__hero" aria-labelledby="product-title">
+        <div class="lc-product-detail__visual">
+          <img class="lc-product-detail__hero-image" data-gallery-main src="{{PRODUCT_COVER}}" width="800" height="800" alt="{{PRODUCT_IMAGE_ALT}}" fetchpriority="high" decoding="async">
+          <div class="lc-product-detail__gallery" role="group" aria-label="Galería ilustrativa del producto">{{PRODUCT_THUMBNAILS}}</div>
+        </div>
+        <div class="lc-product-detail__copy">
+          <p class="lc-product-detail__category">{{PRODUCT_GROUP}}</p>
+          <h1 id="product-title">{{PRODUCT_TITLE}}</h1>
+          <p class="lc-product-detail__demo-note">Producto de demostración, sin descripción comercial.</p>
+        </div>
+      </section>
+    </article>
+  </main>
+  <!-- lc:include footer -->
+  <!-- lc:include whatsapp -->
+  <script src="{{base}}assets/shared.js" defer></script>
+  <script src="{{base}}assets/catalog.js" defer></script>
+</body>
+</html>
