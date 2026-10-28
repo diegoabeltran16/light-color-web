@@ -1,0 +1,21 @@
+<header class="lc-site-header{{header-variant}}">
+  <div class="lc-site-header__inner">
+    <a class="lc-site-header__brand" href="{{base}}" aria-label="Light Color — Inicio">
+      <img src="{{base}}assets/brand/logo.png" width="50" height="50" alt="">
+      <span>Light Color</span>
+    </a>
+    <button class="lc-site-header__toggle" type="button" aria-expanded="false" aria-controls="lc-primary-menu" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="lc-primary-menu" class="lc-site-header__nav" aria-label="Menú principal">
+      <a class="lc-site-header__link{{active:inicio}}" href="{{base}}" {{current:inicio}}>Inicio</a>
+      <a class="lc-site-header__link{{active:nosotros}}" href="{{base}}nosotros/" {{current:nosotros}}>Nosotros</a>
+      <a class="lc-site-header__link{{active:servicios}}" href="{{base}}servicios/" {{current:servicios}}>Servicios</a>
+      <a class="lc-site-header__link{{active:productos}}" href="{{base}}productos/" {{current:productos}}>Productos</a>
+    </nav>
+    <a class="lc-site-header__whatsapp" href="https://api.whatsapp.com/send?phone=573125973539&amp;text=%C2%A1Hola%2C%20Light%20Color!%20%F0%9F%91%8B%20Vi%20su%20p%C3%A1gina%20web%20y%20me%20gustar%C3%ADa%20conocer%20m%C3%A1s%20sobre%20sus%20servicios%20y%20productos." target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M25.6 32c-2.834 0-5.849-.803-8.96-2.387-2.869-1.46-5.703-3.552-8.196-6.048S3.863 18.233 2.404 15.362C.823 12.249.021 9.234.021 6.4c0-1.837 1.711-3.611 2.447-4.288C3.526 1.138 5.19.001 6.399.001c1.458 0 7.2 6.862 7.2 8.8 0 1.196-1.352 2.027-2.782 2.906-.553.34-1.125.691-1.538 1.023-.441.354-.52.54-.533.582 1.519 3.785 6.161 8.427 9.944 9.943.034-.011.221-.084.581-.534.331-.414.683-.985 1.023-1.538.88-1.431 1.71-2.782 2.906-2.782 1.938 0 8.8 5.742 8.8 7.2 0 2.426-3.974 6.399-6.4 6.399z"/></svg>
+      <span>WhatsApp</span>
+    </a>
+  </div>
+</header>
