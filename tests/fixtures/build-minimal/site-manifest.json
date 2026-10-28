@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "site": "light-color-web",
+  "components": ["header", "footer", "whatsapp", "favicon"],
+  "entries": [
+    {"source": "index.html", "output": "index.html", "kind": "html", "active": "productos", "variant": "standard"},
+    {"source": "assets/site.css", "output": "assets/site.css", "kind": "css"},
+    {"source": "assets/app.js", "output": "assets/app.js", "kind": "js"},
+    {"source": "assets/pixel.svg", "output": "assets/pixel.svg", "kind": "asset"},
+    {"source": "nested/page.html", "output": "nested/page.html", "kind": "html", "active": "servicios", "variant": "service-detail"},
+    {"source": "styles/shared.css", "root": "src", "output": "assets/shared.css", "kind": "css"},
+    {"source": "scripts/shared.js", "root": "src", "output": "assets/shared.js", "kind": "js"},
+    {"source": "assets/brand/logo.png", "root": "src", "output": "assets/brand/logo.png", "kind": "asset"},
+    {"source": "assets/brand/favicon-32.png", "root": "src", "output": "assets/brand/favicon-32.png", "kind": "asset"},
+    {"source": "assets/brand/favicon-192.png", "root": "src", "output": "assets/brand/favicon-192.png", "kind": "asset"}
+  ]
+}

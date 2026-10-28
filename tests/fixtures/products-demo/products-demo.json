@@ -1,0 +1,5 @@
+[
+  {"id":"demo-01","name":"Producto de prueba 01","group":"Marca de prueba A","demo":true,"previewLabel":"DEMO LOCAL · SIN OFERTA","detailPath":"productos/demo-01/","gallery":["assets/products/product-demo-a.svg","assets/products/product-demo-a-alt.svg"]},
+  {"id":"demo-02","name":"Producto de prueba 02","group":"Marca de prueba B","demo":true,"previewLabel":"DEMO LOCAL · SIN OFERTA","detailPath":"productos/demo-02/","gallery":["assets/products/product-demo-b.svg","assets/products/product-demo-b-alt.svg"]},
+  {"id":"demo-03","name":"Producto de prueba 03","group":"Otros productos — prueba","demo":true,"previewLabel":"DEMO LOCAL · SIN OFERTA","detailPath":"productos/demo-03/","gallery":["assets/products/product-demo-c.svg","assets/products/product-demo-c-alt.svg"]}
+]
