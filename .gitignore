@@ -16,3 +16,9 @@ Desktop.ini
 *.temp
 *.bak
 *~
+/R002
+/commands
+/R003
+/docs
+/tests/__pycache__
+/tools/__pycache__
