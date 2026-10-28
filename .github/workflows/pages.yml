@@ -1,0 +1,261 @@
+name: Deploy Light Color to GitHub Pages
+
+on:
+  push:
+    branches:
+      - deploy_1
+  pull_request:
+    branches:
+      - deploy_1
+  workflow_dispatch:
+    inputs:
+      publish_preview:
+        description: Confirm the public test-site deployment from deploy_1
+        required: true
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: light-color-github-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-validate:
+    name: Test, build, and validate preview artifact
+    if: ${{ github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/deploy_1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+
+    steps:
+      - name: Check out selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+
+      - name: Run test suite
+        run: python3 -B -m unittest discover -s tests -v
+
+      - name: Read GitHub Pages base path
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Build integrated test preview from src
+        id: build
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          set -euo pipefail
+          base_path="$PAGES_BASE_PATH"
+          if [[ -z "$base_path" || "$base_path" == "/" ]]; then
+            base_path="/"
+          else
+            if [[ "$base_path" != /* ]]; then
+              echo "Pages returned an invalid base path." >&2
+              exit 1
+            fi
+            base_path="${base_path%/}/"
+          fi
+
+          build_parent="$(mktemp -d)"
+          output_path="$build_parent/site"
+          python3 -B tools/build.py \
+            --mode preview-connected \
+            --base-path "$base_path" \
+            --output "$output_path"
+
+          printf 'path=%s\n' "$output_path" >> "$GITHUB_OUTPUT"
+          printf 'base_path=%s\n' "$base_path" >> "$GITHUB_OUTPUT"
+
+      - name: Mark the public test preview as non-indexable
+        env:
+          SITE_PATH: ${{ steps.build.outputs.path }}
+        run: |
+          python3 -B - "$SITE_PATH" <<'PY'
+          import hashlib
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          site = Path(sys.argv[1])
+          inventory_path = site / "build-manifest.json"
+          inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+          head_open = re.compile(r"<head(?:\s[^>]*)?>", re.IGNORECASE)
+          robots_meta = re.compile(r"<meta\s+[^>]*name\s*=\s*['\"]?robots\b", re.IGNORECASE)
+          updated_pages = 0
+
+          for entry in inventory.get("files", []):
+              relative = entry.get("path", "")
+              if not relative.lower().endswith(".html"):
+                  continue
+              page = site / relative
+              content = page.read_text(encoding="utf-8")
+              if robots_meta.search(content):
+                  raise SystemExit(f"Unexpected pre-existing robots directive in {relative}.")
+              match = head_open.search(content)
+              if not match:
+                  raise SystemExit(f"HTML head element is missing in {relative}.")
+              content = (
+                  content[:match.end()]
+                  + '\n<meta name="robots" content="noindex, nofollow">'
+                  + content[match.end():]
+              )
+              page.write_text(content, encoding="utf-8")
+              entry["sha256"] = hashlib.sha256(content.encode("utf-8")).hexdigest()
+              updated_pages += 1
+
+          if updated_pages == 0:
+              raise SystemExit("No HTML pages received the test-preview robots directive.")
+          inventory_path.write_text(
+              json.dumps(inventory, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(f"Added noindex metadata to {updated_pages} preview pages; this does not make them private.")
+          PY
+
+      - name: Verify preview inventory, hashes, and exclusions
+        env:
+          SITE_PATH: ${{ steps.build.outputs.path }}
+          EXPECTED_BASE_PATH: ${{ steps.build.outputs.base_path }}
+        run: |
+          python3 -B - "$SITE_PATH" "$EXPECTED_BASE_PATH" <<'PY'
+          import hashlib
+          import json
+          import re
+          import sys
+          from pathlib import Path, PurePosixPath
+
+          sys.path.insert(0, str(Path("tools").resolve()))
+          from validate_public import validate_output_tree
+
+          site = Path(sys.argv[1])
+          expected_base_path = sys.argv[2]
+          inventory_path = site / "build-manifest.json"
+          if not site.is_dir() or not inventory_path.is_file() or inventory_path.is_symlink():
+              raise SystemExit("Preview artifact or build inventory is missing.")
+
+          try:
+              inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+              raise SystemExit("Build inventory is invalid JSON.") from error
+
+          if inventory.get("schema_version") != 1:
+              raise SystemExit("Unsupported build inventory schema.")
+          if inventory.get("mode") != "preview-connected":
+              raise SystemExit("Only the integrated test-preview mode may be published here.")
+          if inventory.get("base_path") != expected_base_path:
+              raise SystemExit("Build inventory base path does not match Pages configuration.")
+
+          entries = inventory.get("files")
+          if not isinstance(entries, list) or not entries:
+              raise SystemExit("Build inventory has no output entries.")
+
+          expected = {}
+          allowed_fixture_sources = {"products-demo.json"} | {
+              f"product-demo-{letter}{suffix}.svg"
+              for letter in "abc"
+              for suffix in ("", "-alt")
+          }
+          forbidden_parts = {
+              ".git", ".github", ".aws", ".codex", ".agents", "r002", "r003", "r004",
+              "commands", "docs", "tools", "tests", "fixtures",
+          }
+          forbidden_suffixes = {".php", ".xsl", ".pem", ".key", ".p12", ".pfx"}
+
+          for entry in entries:
+              if not isinstance(entry, dict):
+                  raise SystemExit("Build inventory contains a malformed entry.")
+              relative = entry.get("path")
+              digest = entry.get("sha256")
+              source_root = entry.get("root")
+              source = entry.get("source")
+              if not isinstance(relative, str) or not isinstance(digest, str):
+                  raise SystemExit("Build inventory entry is missing a path or hash.")
+              parsed = PurePosixPath(relative)
+              if parsed.is_absolute() or any(part in {"", ".", ".."} for part in parsed.parts):
+                  raise SystemExit("Build inventory contains an unsafe output path.")
+              if parsed.as_posix() != relative or parsed.name.startswith("."):
+                  raise SystemExit("Build inventory contains a non-portable or hidden output path.")
+              if {part.lower() for part in parsed.parts} & forbidden_parts:
+                  raise SystemExit("Build inventory contains an internal path.")
+              if parsed.suffix.lower() in forbidden_suffixes:
+                  raise SystemExit("Build inventory contains a prohibited file type.")
+              if source_root not in {"src", "fixture"}:
+                  raise SystemExit("Build inventory contains an undeclared source root.")
+              if source_root == "fixture" and source not in allowed_fixture_sources:
+                  raise SystemExit("Build inventory contains an unauthorized demo fixture source.")
+              if not re.fullmatch(r"[0-9a-f]{64}", digest):
+                  raise SystemExit("Build inventory contains an invalid SHA-256 digest.")
+              if relative in expected:
+                  raise SystemExit("Build inventory contains duplicate output paths.")
+              expected[relative] = digest
+
+          expected["build-manifest.json"] = hashlib.sha256(inventory_path.read_bytes()).hexdigest()
+
+          required_routes = {
+              "index.html",
+              "nosotros/index.html",
+              "servicios/index.html",
+              "servicios/corte-de-cabello/index.html",
+              "servicios/coloracion-con-tinte/index.html",
+              "servicios/henna-capilar/index.html",
+              "productos/index.html",
+              "productos/demo-01/index.html",
+              "productos/demo-02/index.html",
+              "productos/demo-03/index.html",
+          }
+          if not required_routes <= set(expected):
+              raise SystemExit("The test preview is missing one or more required routes.")
+          historical_review_assets = {
+              "assets/home/review-400.jpg",
+              "assets/home/review-300.jpg",
+          }
+          if not historical_review_assets <= set(expected):
+              raise SystemExit("The explicitly approved test-preview review graphics are missing.")
+
+          actual = {
+              path.relative_to(site).as_posix()
+              for path in site.rglob("*")
+              if path.is_file()
+          }
+          if actual != set(expected):
+              raise SystemExit("Artifact files do not exactly match the declared inventory.")
+
+          errors = validate_output_tree(site, expected, allow_demo=True)
+          if errors:
+              raise SystemExit("Artifact validation failed: " + "; ".join(errors[:20]))
+          print(f"Validated {len(expected)} allowlisted preview files at {expected_base_path}.")
+          PY
+
+      - name: Upload validated GitHub Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ steps.build.outputs.path }}
+
+  deploy-preview:
+    name: Publish confirmed deploy_1 test preview
+    needs: build-and-validate
+    if: ${{ needs.build-and-validate.result == 'success' && ((github.event_name == 'push' && github.ref == 'refs/heads/deploy_1') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/deploy_1' && inputs.publish_preview == true)) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy the validated artifact
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
