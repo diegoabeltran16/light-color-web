@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
-from build import BuildError, _audit_component, _render, build, compose_html, render_product_detail, render_service_detail, validate_base_path, validate_connected_preview_entries, validate_destination, validate_manifest_data, validate_product_demo_registry, validate_empty_product_registry, validate_public_entries, validate_service_registry, validate_source  # noqa: E402
+from build import BuildError, _audit_component, _render, build, compose_html, render_product_detail, render_service_detail, select_related_services, validate_base_path, validate_connected_preview_entries, validate_destination, validate_manifest_data, validate_product_demo_registry, validate_empty_product_registry, validate_public_entries, validate_service_registry, validate_source  # noqa: E402
 from validate_public import validate_output_tree  # noqa: E402
 
 
@@ -664,6 +664,44 @@ class BuildTests(unittest.TestCase):
         self.assertIn("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;", rendered)
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", rendered)
         self.assertNotIn('<script>alert(1)</script>', rendered)
+
+    def test_service_detail_suggests_other_approved_services(self):
+        manifest = json.loads((ROOT / "src" / "site-manifest.json").read_text(encoding="utf-8"))
+        entries = validate_manifest_data(manifest)
+        registry = validate_service_registry(ROOT / "src", entries)
+        for service_id in registry:
+            related = select_related_services(service_id, registry)
+            ids = [item["id"] for item in related]
+            self.assertNotIn(service_id, ids)
+            self.assertTrue(ids)
+            self.assertTrue(all(registry[item]["detailStatus"] == "ready" for item in ids))
+            self.assertLessEqual(len(ids), 3)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            for base in ("/", "/light-color-web/"):
+                output = Path(temporary) / ("site" + str(len(base)))
+                build("preview-connected", base, output, ROOT)
+                for service_id in registry:
+                    with self.subTest(base=base, service=service_id):
+                        page = (output / "servicios" / service_id / "index.html").read_text(encoding="utf-8")
+                        self.assertNotIn("{{DETAIL_", page)
+                        section = page.split('class="lc-service-detail__related"', 1)[1].split("</section>", 1)[0]
+                        self.assertIn("También te puede interesar", section)
+                        self.assertNotIn(f'href="{base}servicios/{service_id}/"', section)
+                        for other in registry:
+                            if other != service_id:
+                                self.assertIn(f'href="{base}servicios/{other}/"', section)
+                                self.assertIn(f'src="{base}{registry[other]["cover"]}"', section)
+                        self.assertIn(f'href="{base}servicios/"', section)
+                        self.assertNotIn("Información en preparación", section)
+
+    def test_related_services_section_is_omitted_when_nothing_to_suggest(self):
+        manifest = json.loads((ROOT / "src" / "site-manifest.json").read_text(encoding="utf-8"))
+        registry = validate_service_registry(ROOT / "src", validate_manifest_data(manifest))
+        template = (ROOT / "src" / "templates" / "service-detail.html").read_text(encoding="utf-8")
+        rendered = render_service_detail(template, registry["henna-capilar"], "/", [])
+        self.assertNotIn("lc-service-detail__related", rendered)
+        self.assertNotIn("{{DETAIL_RELATED}}", rendered)
 
     def test_about_reuses_the_exact_social_svg_paths_from_home(self):
         home = (ROOT / "src" / "components" / "footer.html").read_text(encoding="utf-8")

@@ -592,7 +592,55 @@ def validate_service_registry(src_root: Path, entries: list[dict[str, str]]) -> 
     return ready
 
 
-def render_service_detail(template: str, service: dict[str, object], base_path: str) -> str:
+MAX_RELATED_SERVICES = 3
+
+
+def select_related_services(
+    service_id: str, registry: dict[str, dict[str, object]], limit: int = MAX_RELATED_SERVICES,
+) -> list[dict[str, object]]:
+    """Pick other services with an approved detail page; same category first, registry order kept."""
+    current = registry.get(service_id)
+    category = current.get("category") if current else None
+    others = [item for key, item in registry.items() if key != service_id]
+    ranked = sorted(others, key=lambda item: 0 if item.get("category") == category else 1)
+    return ranked[:limit]
+
+
+def render_related_services(related: list[dict[str, object]], base_path: str) -> str:
+    """Render the static 'other services' section; empty when there is nothing to suggest."""
+    if not related:
+        return ""
+    cards: list[str] = []
+    for item in related:
+        name = escape_html(str(item["name"]))
+        href = escape_html(base_path + str(item["detailPath"]), quote=True)
+        cover = escape_html(base_path + str(item["cover"]), quote=True)
+        category = escape_html(str(item["category"]))
+        item_id = escape_html(str(item["id"]), quote=True)
+        cards.append(
+            f'<li class="lc-catalog__card lc-services__card" data-service-id="{item_id}">'
+            f'<a class="lc-services__card-content" href="{href}" aria-label="Conocer el servicio: {escape_html(str(item["name"]), quote=True)}">'
+            '<div class="lc-catalog__card-media lc-services__card-media">'
+            f'<img src="{cover}" width="1254" height="1254" alt="" loading="lazy" decoding="async"></div>'
+            '<div class="lc-catalog__card-body">'
+            f'<p class="lc-catalog__category">{category}</p>'
+            f'<h3>{name}</h3>'
+            '<span class="lc-services__card-cta">Conocer el servicio</span>'
+            '</div></a></li>'
+        )
+    return (
+        '<section class="lc-service-detail__related" aria-labelledby="related-services-title">'
+        '<h2 id="related-services-title">También te puede interesar</h2>'
+        '<ul class="lc-service-detail__related-grid">' + "".join(cards) + '</ul>'
+        f'<a class="lc-service-detail__related-all" href="{escape_html(base_path, quote=True)}servicios/">Ver todos los servicios</a>'
+        '</section>'
+    )
+
+
+def render_service_detail(
+    template: str, service: dict[str, object], base_path: str,
+    related: list[dict[str, object]] | None = None,
+) -> str:
     """Render one approved static detail page from the shared template and data."""
     service_id = str(service["id"])
     name = str(service["name"])
@@ -629,6 +677,7 @@ def render_service_detail(template: str, service: dict[str, object], base_path: 
         "DETAIL_DESCRIPTION": descriptions,
         "DETAIL_EDITORIAL_NOTE": note_html,
         "DETAIL_WHATSAPP_URL": escape_html(whatsapp, quote=True),
+        "DETAIL_RELATED": render_related_services(related or [], base_path),
     }
     rendered = template
     for key, value in values.items():
@@ -694,7 +743,8 @@ def _render(
             if record_id is not None:
                 if service_registry is None or record_id not in service_registry:
                     raise BuildError("ficha de Servicios sin datos canónicos validados")
-                text = render_service_detail(text, service_registry[record_id], base_path)
+                related = select_related_services(record_id, service_registry)
+                text = render_service_detail(text, service_registry[record_id], base_path, related)
             markers = list(INCLUDE_PATTERN.finditer(text))
             if markers or ANY_INCLUDE_PATTERN.search(text):
                 text = compose_html(
