@@ -124,11 +124,22 @@
 .lc-services-screen-reader { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); border: 0; white-space: nowrap; }
 .lc-service-detail__gallery-note { margin: 10px 0 0; color: #607680; font-size: .82rem; }
 
+.lc-service-detail__related { margin-top: clamp(48px, 7vw, 80px); padding-top: clamp(32px, 5vw, 48px); border-top: 1px solid #e0e9ed; }
+.lc-service-detail__related h2 { margin: 0 0 22px; color: #234857; font-family: Sagona, Georgia, serif; font-size: clamp(1.45rem, 2.6vw, 1.9rem); line-height: 1.2; }
+.lc-service-detail__related-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin: 0; padding: 0; list-style: none; }
+.lc-service-detail__related .lc-services__card h3 { margin: 0; color: #234857; font-family: Sagona, Georgia, serif; font-size: 1.18rem; line-height: 1.35; }
+.lc-service-detail__related .lc-services__card-content:hover h3 { color: #336a7f; }
+.lc-service-detail__related .lc-services__card,
+.lc-service-detail__related .lc-services__card-content { min-height: 300px; }
+.lc-service-detail__related-all { display: inline-block; margin-top: 24px; color: #336a7f; font-weight: 600; text-underline-offset: 3px; }
+.lc-service-detail__related-all:hover { color: #234857; }
+
 @media (max-width: 900px) {
   .lc-catalog__layout { grid-template-columns: 210px minmax(0, 1fr); gap: 20px; }
   .lc-catalog__grid,
   .lc-services__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lc-service-detail__hero { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 24px; }
+  .lc-service-detail__related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .lc-service-detail__hero { grid-template-columns: 1fr; gap: 20px; }
@@ -151,6 +162,9 @@
   .lc-services__card-media img { height: auto; aspect-ratio: 1.35; }
   .lc-service-detail { width: min(calc(100% - 32px), 600px); padding: 22px 0 48px; }
   .lc-service-detail__gallery { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; }
+  .lc-service-detail__related-grid { grid-template-columns: 1fr; }
+  .lc-service-detail__related .lc-services__card,
+  .lc-service-detail__related .lc-services__card-content { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lc-catalog--services *, .lc-catalog--services *::before, .lc-catalog--services *::after,
